@@ -42,9 +42,6 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import Qt, QPointF, QRectF, QTimer
 from PyQt6.QtGui import QPainter, QLinearGradient, QColor, QMouseEvent
 
-
-# 假设 CustomColorDialog 已经定义
-
 class GradientSlider(QWidget):
     """
     自定义渐变滑条：

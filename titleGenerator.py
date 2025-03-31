@@ -1,20 +1,48 @@
 import math
 import os
+from enum import Enum
+
 from PIL import Image, ImageDraw, ImageFont
 
 
-def generate_font_image(text:str, font_path:str, output_path:str, color1:str="#07098A", color2:str="#3FAED4", width:int=1937, height:int=1022,
-                        angle=170):
+class BgType(Enum):
+    """背景类型"""
+    ALPHA = 1  # 透明背景
+    SOLID = 2  # 纯色背景
+    PICTURE = 3  # 图片背景
+
+
+class TextType(Enum):
+    """字体描边类型"""
+    ALPHA = 1  # 方框里的字透明
+    WHITE = 2  # 方框里的字填上白色
+    HARD_OUTFIT = 3  # 方框里的字填上白色，然后再描边一圈
+    SOFT_OUTFIT = 4  # 方框里的字填上白色，然后再描边一圈，但是描边的是柔和的
+    # METAL = 5  # 金属质感，不会做，等pr救救
+
+
+class Direction(Enum):
+    """字体排列方向"""
+    HORIZONTAL = 1  # 水平
+    VERTICAL = 2  # 垂直
+
+
+def generate_font_image(text: str, font_path: str = "", small_font_path: str = "", output_path: str = "",
+                        color1: str = "#07098A", color2: str = "#3FAED4",
+                        width: int = 1937, height: int = 1022,
+                        angle=115, text_type: TextType = TextType.WHITE, bg_type: BgType = BgType.ALPHA,
+                        direction=Direction.HORIZONTAL):
     """
     生成带有渐变蒙版的魔禁风格字体图片：
     :param text: 要生成的文字
     :param font_path: 字体文件路径
+    :param small_font_path: 小字体文件路径
     :param output_path: 输出图片路径
     :param color1: 渐变色1，默认为蓝色
     :param color2: 渐变色2，默认为青色
     :param width: 图片宽度，默认为 1937
     :param height: 图片高度，默认为 1022
-    :param angle: 渐变角度，默认为 135 度
+    :param angle: 渐变角度，默认为 115 度
     :return: None
     """
     # 创建一个透明背景，绘制黑色文字
@@ -34,23 +62,26 @@ def generate_font_image(text:str, font_path:str, output_path:str, color1:str="#0
     size = [0.4471, 0.3023, 0.2084, 0.4784, 0.3757,
             0.3297, 0.5000, 0.3992, 0.4099, 0.5430, 0.0802]
 
-
-    # 在 text_img 上绘制黑色文字
-    for i, char in enumerate(text):
+    def draw_text(pen, i, word, color=(0, 0, 0, 255)):
+        """写一个字符"""
         char_height = int(height * size[i])
         font = ImageFont.truetype(font_path, char_height)
         # 获取字符宽度
-        char_bbox = font.getbbox(char)
+        char_bbox = font.getbbox(word)
         char_width = char_bbox[2] - char_bbox[0]
         abs_x = int(width / 2 + xy[i][0] * width - char_width / 2)
         abs_y = int(height / 2 + xy[i][1] * height - char_height / 2)
-        if i==6:
-            rx,ry=0.258*width/2,0.48*height/2
-            ax,ay=int(width / 2 + xy[i][0] * width),int(height / 2 + xy[i][1] * height)
-            draw.rectangle([ax-rx, ay-ry, ax+rx, ay+ry], fill=(0,0,0,255))
-            draw.text((abs_x, abs_y), char, font=font, fill=(0, 0, 0, 0))
+        pen.text((abs_x, abs_y), word, font=font, fill=color)
+
+    # 在 text_img 上绘制黑色文字
+    for i, char in enumerate(text):
+        if i == 6:
+            rx, ry = 0.258 * width / 2, 0.48 * height / 2
+            ax, ay = int(width / 2 + xy[i][0] * width), int(height / 2 + xy[i][1] * height)
+            draw.rectangle([ax - rx, ay - ry, ax + rx, ay + ry], fill=(0, 0, 0, 255))
+            draw_text(draw, i, char, color=(0, 0, 0, 0))
         else:
-            draw.text((abs_x, abs_y), char, font=font, fill=(0, 0, 0, 255))
+            draw_text(draw, i, char)
 
     # 保存文字区域的不透明度
     text_alpha = text_img.split()[3]  # 文字图层的 alpha 通道
@@ -90,15 +121,22 @@ def generate_font_image(text:str, font_path:str, output_path:str, color1:str="#0
     # 将渐变图层的颜色应用到文字区域
     # 用文字的 alpha 作为蒙版，使渐变只在文字区域显示，并恢复原来的不透明度
     gradient_img.putalpha(text_alpha)
+    last_draw = ImageDraw.Draw(gradient_img)
+
+    if text_type == TextType.WHITE or text_type == TextType.HARD_OUTFIT or text_type == TextType.SOFT_OUTFIT:
+        draw_text(last_draw, 6, text[6], color=(255, 255, 255, 255))
 
     # 保存最终结果
     # gradient_img.show()
+
     gradient_img.save(output_path)
     print(f"Image saved to: {output_path}")
 
 
 if __name__ == "__main__":
     # text = "とある魔術の禁書目録"
-    text="とある學都の標題工房"
+    text = "とある學都の標題工房"
     output_path = "output.png"
-    generate_font_image(text, os.path.abspath("fonts/XiaoMingChaoPro-B-6.otf"), output_path, angle=115,color1="#D52034", color2="#FEB340")
+    generate_font_image(text, font_path=os.path.abspath("fonts/XiaoMingChaoPro-B-6.otf"), small_font_path="",
+                        output_path=output_path, angle=115,
+                        color1="#D52034", color2="#FEB340")
