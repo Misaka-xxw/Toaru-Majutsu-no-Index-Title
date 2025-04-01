@@ -1,15 +1,21 @@
+"""
+File: measures.py
+Description: 测量样例图的坐标，用于计算坐标的比例
+Author: Misaka-xxw
+Created: 2025-03-31
+"""
 xy = [(0, 4), (314, 461), (321, 144), (597, 453), (558, 106), (747, 319), (743, 0), (1233, 489), (1221, 98),
       (1582, 482), (1589, 126), (1933, 463), (144, 498), (584, 1013), (597, 501), (1008, 909), (1001, 487), (1383, 906),
       (1378, 464), (1827, 1019), (636, 937), (1371, 1019)
-      ]# 1937 x 1022超炮横图
-w=1937
-h=1022
-font_size=[]
-middle_xy=[]
-for i in range(0,len(xy),2):
-      middle_xy.append((((xy[i+1][0]+xy[i][0])/2-w/2)/w,((xy[i+1][1]+xy[i][1])/2-h/2)/h))
-      font_size.append((xy[i+1][1]-xy[i][1])/h)
+      ]  # 1937 x 1022超炮横图
+w = 1937
+h = 1022
+font_size = []
+middle_xy = []
+for i in range(0, len(xy), 2):
+    middle_xy.append((((xy[i + 1][0] + xy[i][0]) / 2 - w / 2) / w, ((xy[i + 1][1] + xy[i][1]) / 2 - h / 2) / h))
+    font_size.append((xy[i + 1][1] - xy[i][1]) / h)
 # print(middle_xy)
-i=6
-print((xy[i+1][0]-xy[i][0])/w,(xy[i+1][1]-xy[i][1])/h)
+i = 6
+print((xy[i + 1][0] - xy[i][0]) / w, (xy[i + 1][1] - xy[i][1]) / h)
 # print(font_size)

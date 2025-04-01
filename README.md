@@ -1,13 +1,17 @@
 <center>
+<img alt="标题" src="docs/title.png">
 <h1 align="center">
 某学都的标题工房
 </h1>
-<div align="center">   
+<h6>
+当科学与魔法交织之时，故事即将开始!
+</h6>
+<div align="center">
 <img alt="Static Badge" src="https://img.shields.io/badge/language-python_3.10-blue" style="margin-right: 5px;">
 <img alt="Static Badge" src="https://img.shields.io/github/license/Misaka-xxw/Toaru-Majutsu-no-Index-Title.svg" style="margin-right: 5px;">
 <img alt="Static Badge" src="https://img.shields.io/maintenance/yes/2025.svg" style="margin-right: 5px;">
 
-[English](docs/README_en.md) | [日本语](docs/README_jp.md)
+[English](docs/README_en.md) | [日本語](docs/README_jp.md)
 </div>
 </center>
 
@@ -29,7 +33,7 @@
 
 ## 🔧 安装与使用
 ### 环境要求
-- Python 3.8 或更高版本（应该是）
+- 推荐使用Python 3.10 或更高版本
 
 ### 运行步骤
 1. 克隆项目到本地：
@@ -70,5 +74,3 @@
 
 ## 📜 许可证
 本项目基于 [GPL-3.0 license](LICENSE) 开源，您可以自由使用、修改和分发。
-
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Misaka-xxw&langs_count=14&layout=compact)
