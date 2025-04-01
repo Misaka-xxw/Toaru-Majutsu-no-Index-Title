@@ -3,7 +3,7 @@
 <h1 align="center">
 某学都的标题工房
 </h1>
-<h6>
+<h6 align="center">
 当科学与魔法交织之时，故事即将开始!
 </h6>
 <div align="center">
@@ -14,8 +14,6 @@
 [English](docs/README_en.md) | [日本語](docs/README_jp.md)
 </div>
 </center>
-
----
 
 > 项目正在初步开发中……
 
