@@ -7,6 +7,7 @@ Created: 2025-03-30
 import math
 from enum import Enum
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from resource_path import resource_path
@@ -34,24 +35,28 @@ class Direction(Enum):
     VERTICAL = 2  # 垂直
 
 
+magic_color = [('#07098A', 0), ('#3FAED4', 1)]
+science_color = [('#D52034', 0), ('#FEB340', 1)]
+
+
 def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_path: str = "",
-                        small_font_path: str = "", output_path: str = "",
-                        color1: str = "#07098A", color2: str = "#3FAED4",
+                        small_font_path: str = "",
+                        colors=None,
                         width: int = 1937, height: int = 1022,
-                        angle=115, text_type: TextType = TextType.WHITE, bg_type: BgType = BgType.ALPHA,
-                        direction=Direction.HORIZONTAL, size_ratio=1):
+                        angle=155, text_type: TextType = TextType.WHITE, bg_type: BgType = BgType.ALPHA,
+                        direction=Direction.HORIZONTAL, size_ratio=1) -> Image.Image:
     """
     生成带有渐变蒙版的魔禁风格字体图片：
-    :param text: 要生成的文字
+    :param text1: 文本中间部分1，例如“學都”
+    :param text2: 文本中间部分2，例如“標題工房”
+    :param text3: 文本底下的小字
     :param font_path: 字体文件路径
     :param small_font_path: 小字体文件路径
-    :param output_path: 输出图片路径
-    :param color1: 渐变色1，默认为蓝色
-    :param color2: 渐变色2，默认为青色
+    :param colors: 渐变色列表，包含至少一个颜色和它们的比例，例如 [('#000000',0), ('#ffffff',100)]
     :param width: 图片宽度，默认为 1937
     :param height: 图片高度，默认为 1022
-    :param angle: 渐变角度，默认为 115 度
-    :return: None
+    :param angle: 渐变角度，默认为 155 度
+    :return: 生成的图片对象
     """
     # 创建一个透明背景，绘制黑色文字
     text_img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
@@ -98,37 +103,44 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
     text_alpha = text_img.split()[3]  # 文字图层的 alpha 通道
 
     # 生成渐变蒙版
-    # 创建灰度图（L 模式）作为渐变蒙版
-    gradient_mask = Image.new("L", (width, height), 0)
-    grad_draw = ImageDraw.Draw(gradient_mask)
-
+    # 使用 numpy 优化：创建灰度图（L 模式）作为渐变蒙版
+    indices = np.indices((height, width))
+    Y = indices[0].astype(np.float32)  # shape (height, width)
+    X = indices[1].astype(np.float32)
+    # 计算每个像素对应的 offset = x * dx + y * dy
     angle_rad = math.radians(angle)
-    dx = math.cos(angle_rad)
-    dy = math.sin(angle_rad)
+    dx = math.sin(angle_rad)
+    dy = math.cos(angle_rad)
+    offset_arr = X * dx + Y * dy
+    min_offset = offset_arr.min()
+    max_offset = offset_arr.max()
+    # 归一化 factor 数组，范围 [0, 1]
+    factor_arr = (offset_arr - min_offset) / (max_offset - min_offset)
+    # 如果未指定 colors，则使用原有两色渐变
+    if colors is None:
+        colors = magic_color
+    stops = sorted(colors, key=lambda s: s[1])
+    # 构造 stops 数组
+    stops_arr = np.array([s[1] for s in stops])
 
-    # 先遍历整个图像计算 offset 的最小和最大值，用于归一化
-    min_offset = float("inf")
-    max_offset = float("-inf")
-    for x in range(width):
-        for y in range(height):
-            offset = x * dx + y * dy
-            if offset < min_offset:
-                min_offset = offset
-            if offset > max_offset:
-                max_offset = offset
-    # 根据归一化后的比例，赋值灰度（0～255）
-    for x in range(width):
-        for y in range(height):
-            offset = x * dx + y * dy
-            factor = (offset - min_offset) / (max_offset - min_offset)
-            value = int(255 * factor)
-            grad_draw.point((x, y), fill=value)
+    # 对每个停靠点的颜色，取出 r, g, b 分量
+    def get_rgb_arr(color_str):
+        from PIL import ImageColor
+        r, g, b = ImageColor.getrgb(color_str)
+        return r, g, b
 
-    # 生成渐变色图层
-    color1_img = Image.new("RGBA", (width, height), color1)
-    color2_img = Image.new("RGBA", (width, height), color2)
-    gradient_img = Image.composite(color1_img, color2_img, gradient_mask)
-    # gradient_img.show()
+    r_stops = np.array([get_rgb_arr(s[0])[0] for s in stops])
+    g_stops = np.array([get_rgb_arr(s[0])[1] for s in stops])
+    b_stops = np.array([get_rgb_arr(s[0])[2] for s in stops])
+    # 对每个像素的 factor 进行线性插值，得到 r, g, b 数组
+    r_interp = np.interp(factor_arr, stops_arr, r_stops).astype(np.uint8)
+    g_interp = np.interp(factor_arr, stops_arr, g_stops).astype(np.uint8)
+    b_interp = np.interp(factor_arr, stops_arr, b_stops).astype(np.uint8)
+    # 合成渐变图层数组（RGBA），alpha 固定为 255
+    gradient_arr = np.stack([r_interp, g_interp, b_interp, 255 * np.ones_like(r_interp, dtype=np.uint8)], axis=-1)
+    # 转换为 PIL 图片
+    gradient_img = Image.fromarray(gradient_arr, mode="RGBA")
+
     # 将渐变图层的颜色应用到文字区域
     # 用文字的 alpha 作为蒙版，使渐变只在文字区域显示，并恢复原来的不透明度
     gradient_img.putalpha(text_alpha)
@@ -137,25 +149,24 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
     if text_type == TextType.WHITE or text_type == TextType.HARD_OUTFIT or text_type == TextType.SOFT_OUTFIT:
         draw_text(last_draw, where_rect, text[where_rect], color=(255, 255, 255, 255))
 
-    # 保存最终结果
-    gradient_img.show()
+    # 返回最终生成的图片对象
+    return gradient_img
 
-    # gradient_img.save(output_path)
-    print(f"Image saved to: {output_path}")
+
+# 辅助函数，用于将颜色字符串转换为 RGB 元组
+def ImageColor_getrgb(color_str):
+    from PIL import ImageColor
+    return ImageColor.getrgb(color_str)
 
 
 if __name__ == "__main__":
     # text = "とある魔術の禁書目録"
-    try:
-        a="ppp"
-        print(a/10)
-    except Exception as e:
-        print(e)
-    exit(0)
     text = "とある學都の標題工房"
     output_path = "output.png"
-    generate_font_image(text1="學都", text2="標題工房", font_path=resource_path("fonts/XiaoMingChaoPro-B-6.otf"),
-                        small_font_path="",
-                        output_path=output_path, angle=115,
-                        color1="#D52034", color2="#FEB340")
-
+    # 示例：自定义渐变：使用 science_color
+    img = generate_font_image(text1="學都", text2="標題工房",
+                              font_path=resource_path("fonts/adjusted_ZauriSansItalic-Bold.ttf"),
+                              small_font_path="",
+                              colors=science_color)
+    img.save(output_path)
+    print(f"Image saved to: {output_path}")
