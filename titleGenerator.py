@@ -64,8 +64,8 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
     try:
         _ = ImageFont.truetype(font_path, 100)  # 测试字体加载
     except Exception as e:
-        print(f"没有这个字体， {e}，do，御坂无情地报错道。")
-        return
+        raise Exception(f"没找到这个字体。{e.args}")
+
 
     text = f'とある{text1}の{text2}'
     len1, len2 = len(text1), len(text2)
