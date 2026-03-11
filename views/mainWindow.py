@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
 )
 
 from resource_path import resource_path
-from titleGenerator import generate_font_image
+from titleGenerator import generate_font_image, Direction
 from views.ColorWidget import GradientSlider, CustomColorDialog
 from views.MessageBox import MessageBox
 
@@ -45,6 +45,20 @@ class MainWindow(QWidget):
         text_layout.addWidget(self.text_input3)
         self.text_group_box.setLayout(text_layout)
         left_layout.addWidget(self.text_group_box)
+
+        # 方向选项
+        self.direct_group_box = QGroupBox("方向")
+        direct_layout = QVBoxLayout()
+        self.direct_group = QButtonGroup()
+        self.direct_horizontal = QRadioButton("横向")
+        self.direct_vertical = QRadioButton("纵向")  # 纯色背景
+        self.direct_horizontal.setChecked(True)
+        for btn in [self.direct_horizontal, self.direct_vertical]:
+            self.direct_group.addButton(btn)
+            direct_layout.addWidget(btn)
+        self.direct_group_box.setLayout(direct_layout)
+        left_layout.addWidget(self.direct_group_box)
+
         # 背景选项
         self.bg_group_box = QGroupBox("背景色")
         bg_layout = QVBoxLayout()
@@ -188,7 +202,11 @@ class MainWindow(QWidget):
 
     def generate_font(self):
         try:
-            angle = 155
+            angle = None
+            if self.direct_horizontal.isChecked():
+                direction=Direction.HORIZONTAL
+            else:
+                direction=Direction.VERTICAL
             if self.color_science.isChecked():
                 from titleGenerator import science_color
                 color = science_color
@@ -202,8 +220,8 @@ class MainWindow(QWidget):
             self.img = generate_font_image(text1=self.text_input1.text(), text2=self.text_input2.text(),
                                            text3=self.text_input3.text(),
                                            font_path=resource_path("fonts/index.ttf"),
-                                           small_font_path="", angle=angle,
-                                           colors=color)
+                                           small_font_path=resource_path("fonts/YuGothB.ttc"), angle=angle,
+                                           colors=color, direction=direction)
             self.pil2pixmap()
             MessageBox("生成成功", "success",parent=self)
         except Exception as e:

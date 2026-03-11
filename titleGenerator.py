@@ -35,16 +35,16 @@ class Direction(Enum):
     VERTICAL = 2  # 垂直
 
 
-magic_color = [('#07098A', 0), ('#3FAED4', 1)]
-science_color = [('#D52034', 0), ('#FEB340', 1)]
+magic_color = [('#07098A', 0),('#07098A', 0.3), ('#3FAED4', 0.7), ('#3FAED4', 1)]
+science_color = [('#E60020', 0), ('#E60020', 0.3),('#F29038', 0.7),('#F29038', 1)]
 
 
 def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_path: str = "",
                         small_font_path: str = "",
                         colors=None,
-                        width: int|None = None, height: int|None = None,
-                        angle=155, text_type: TextType = TextType.WHITE, bg_type: BgType = BgType.ALPHA,
-                        direction=Direction.HORIZONTAL, size_ratio:float=1) -> Image.Image:
+                        width: int | None = None, height: int | None = None,
+                        angle:float|None=None, text_type: TextType = TextType.WHITE, bg_type: BgType = BgType.ALPHA,
+                        direction=Direction.HORIZONTAL, size_ratio: float = 1) -> Image.Image:
     """
     生成带有渐变蒙版的魔禁风格字体图片：
     :param text1: 文本中间部分1，例如“學都”
@@ -65,8 +65,14 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
     # 创建一个透明背景，绘制黑色文字
     if width is None or height is None:
         if direction == Direction.HORIZONTAL:
-            pass
-        width, height = 1937, 1022
+            width, height = 1937, 1022
+        else:
+            width, height = 822, 1860
+    if angle is None:
+        if direction == Direction.HORIZONTAL:
+            angle = 155
+        else:
+            angle= 135
     text_img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
     draw = ImageDraw.Draw(text_img)
     try:
@@ -75,11 +81,11 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
         raise Exception(f"没找到这个字体。{e.args}")
 
     # 如果 text1 长度不足 2，则补空格
-    if len(text1)<2:
+    if len(text1) < 2:
         if len(text1) == 0:
             text1 = "  "
         else:
-            text1=f'{text1} '
+            text1 = f'{text1} '
 
     text = f'とある{text1}の{text2}'
     len1, len2 = len(text1), len(text2)
@@ -92,8 +98,23 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
               (0.3273, 0.2255)]
         size = [0.4471, 0.3023, 0.2084, 0.4784, 0.3757,
                 0.3297, 0.5000, 0.3992, 0.4099, 0.5430]
+        rx, ry = 0.258 * width / 2, 0.48 * height / 2
+        small_xy = [(0.014197212183789365, 0.45401174168297453)]
+        small_size = [0.09001956947162426]
+
     else:
-        pass
+        xy = [(0.2537, -0.4113), (0.3571, -0.2560),
+              (0.1655, -0.1974), (0.2695, -0.04839),
+              (0.2713, 0.1401), (0.2707, 0.3025),
+              (-0.2257, -0.1608), (-0.1429, 0.03468),
+              (-0.1758, 0.1928), (-0.2215, 0.3863),
+              (-0.2342, -0.1592)]
+        size = [0.22, 0.13, 0.12, 0.2, 0.19,
+                0.175, 0.22, 0.17, 0.18, 0.24,
+                0.26]
+        rx, ry = 0.5267 * width / 2, 0.2333 * height / 2
+        small_xy = [(-0.4586374695863747, 0.12123655913978494)]
+        small_size = [0.29838709677419356]
 
     def draw_text(pen, i, word, color=(0, 0, 0, 255)):
         """写一个字符"""
@@ -106,16 +127,46 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
         abs_y = int(height / 2 + xy[i][1] * height - char_height / 2)
         pen.text((abs_x, abs_y), word, font=font, fill=color)
 
+    def draw_small_text(pen, text):
+        """绘制小字 text3"""
+        if not text:
+            return
+        char_height = int(height * small_size[0])
+        font = ImageFont.truetype(small_font_path, char_height)
+        base_x = int(width / 2 + small_xy[0][0] * width)
+        base_y = int(height / 2 + small_xy[0][1] * height)
+        n = len(text)
+        # 根据方向决定排列
+        if direction == Direction.HORIZONTAL:
+            total_width = char_height * n * 1.2
+            start_x = base_x - total_width / 2
+            step = total_width / max(n - 1, 1)
+            for i, char in enumerate(text):
+                x = int(start_x + i * step)
+                y = int(base_y - char_height / 2)
+                pen.text((x, y), char, font=font, fill=(0, 0, 0, 255))
+
+        else:
+            total_height = char_height * n * 1.2
+            start_y = base_y - total_height / 2
+
+            step = total_height / max(n - 1, 1)
+
+            for i, char in enumerate(text):
+                x = int(base_x - char_height / 2)
+                y = int(start_y + i * step)
+                pen.text((x, y), char, font=font, fill=(0, 0, 0, 255))
+
+
     # 在 text_img 上绘制黑色文字
     for i, char in enumerate(text):
         if i == where_rect:
-            rx, ry = 0.258 * width / 2, 0.48 * height / 2
             ax, ay = int(width / 2 + xy[i][0] * width), int(height / 2 + xy[i][1] * height)
             draw.rectangle([ax - rx, ay - ry, ax + rx, ay + ry], fill=(0, 0, 0, 255))
             draw_text(draw, i, char, color=(0, 0, 0, 0))
         else:
             draw_text(draw, i, char)
-
+    draw_small_text(draw, text3)
     # 保存文字区域的不透明度
     text_alpha = text_img.split()[3]  # 文字图层的 alpha 通道
 
@@ -181,9 +232,10 @@ if __name__ == "__main__":
     text = "とある學都の標題工房"
     output_path = "output.png"
     # 示例：自定义渐变：使用 science_color
-    img = generate_font_image(text1="學都", text2="標題工房",
+    img = generate_font_image(text1="学都", text2="标题工房", text3="title",
+    # img = generate_font_image(text1="科学", text2="超電磁砲",text3= "test",
                               font_path=resource_path("fonts/index.ttf"),
-                              small_font_path="",
-                              colors=science_color)
+                              small_font_path=resource_path("fonts/YuGothB.ttc"),
+                              colors=science_color,direction=Direction.HORIZONTAL)
     img.save(output_path)
     print(f"Image saved to: {output_path}")
