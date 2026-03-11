@@ -42,9 +42,9 @@ science_color = [('#D52034', 0), ('#FEB340', 1)]
 def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_path: str = "",
                         small_font_path: str = "",
                         colors=None,
-                        width: int = 1937, height: int = 1022,
+                        width: int|None = None, height: int|None = None,
                         angle=155, text_type: TextType = TextType.WHITE, bg_type: BgType = BgType.ALPHA,
-                        direction=Direction.HORIZONTAL, size_ratio=1) -> Image.Image:
+                        direction=Direction.HORIZONTAL, size_ratio:float=1) -> Image.Image:
     """
     生成带有渐变蒙版的魔禁风格字体图片：
     :param text1: 文本中间部分1，例如“學都”
@@ -56,9 +56,17 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
     :param width: 图片宽度，默认为 1937
     :param height: 图片高度，默认为 1022
     :param angle: 渐变角度，默认为 155 度
+    :param text_type: 字体描边类型，默认为 TextType.WHITE
+    :param bg_type: 背景类型，默认为 BgType.ALPHA
+    :param direction: 字体排列方向，默认为 Direction.HORIZONTAL
+    :param size_ratio: 字体大小比例，默认为 1，表示不缩放
     :return: 生成的图片对象
     """
     # 创建一个透明背景，绘制黑色文字
+    if width is None or height is None:
+        if direction == Direction.HORIZONTAL:
+            pass
+        width, height = 1937, 1022
     text_img = Image.new("RGBA", (width, height), (255, 255, 255, 0))
     draw = ImageDraw.Draw(text_img)
     try:
@@ -66,17 +74,26 @@ def generate_font_image(text1: str = "", text2: str = "", text3: str = "", font_
     except Exception as e:
         raise Exception(f"没找到这个字体。{e.args}")
 
+    # 如果 text1 长度不足 2，则补空格
+    if len(text1)<2:
+        if len(text1) == 0:
+            text1 = "  "
+        else:
+            text1=f'{text1} '
 
     text = f'とある{text1}の{text2}'
     len1, len2 = len(text1), len(text2)
     where_rect = 4 + len1
     # 定义每个字的相对中心坐标（相对于画布中心）和相对高度（占画布高度的比例）
-    xy = [(-0.4189, -0.2725), (-0.2630, -0.2079), (-0.1631, -0.2920),
-          (0.0100, -0.2607), (0.2235, -0.2162), (0.4091, -0.2118),
-          (-0.3170, 0.2392), (-0.0836, 0.1898), (0.1153, 0.1815),
-          (0.3273, 0.2255)]
-    size = [0.4471, 0.3023, 0.2084, 0.4784, 0.3757,
-            0.3297, 0.5000, 0.3992, 0.4099, 0.5430]
+    if direction == Direction.HORIZONTAL:
+        xy = [(-0.4189, -0.2725), (-0.2630, -0.2079), (-0.1631, -0.2920),
+              (0.0100, -0.2607), (0.2235, -0.2162), (0.4091, -0.2118),
+              (-0.3170, 0.2392), (-0.0836, 0.1898), (0.1153, 0.1815),
+              (0.3273, 0.2255)]
+        size = [0.4471, 0.3023, 0.2084, 0.4784, 0.3757,
+                0.3297, 0.5000, 0.3992, 0.4099, 0.5430]
+    else:
+        pass
 
     def draw_text(pen, i, word, color=(0, 0, 0, 255)):
         """写一个字符"""
@@ -165,7 +182,7 @@ if __name__ == "__main__":
     output_path = "output.png"
     # 示例：自定义渐变：使用 science_color
     img = generate_font_image(text1="學都", text2="標題工房",
-                              font_path=resource_path("fonts/adjusted_ZauriSansItalic-Bold.ttf"),
+                              font_path=resource_path("fonts/index.ttf"),
                               small_font_path="",
                               colors=science_color)
     img.save(output_path)

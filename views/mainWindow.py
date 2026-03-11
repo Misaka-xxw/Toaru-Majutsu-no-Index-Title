@@ -201,7 +201,7 @@ class MainWindow(QWidget):
                 color = magic_color
             self.img = generate_font_image(text1=self.text_input1.text(), text2=self.text_input2.text(),
                                            text3=self.text_input3.text(),
-                                           font_path=resource_path("fonts/XiaoMingChaoPro-B-6.otf"),
+                                           font_path=resource_path("fonts/index.ttf"),
                                            small_font_path="", angle=angle,
                                            colors=color)
             self.pil2pixmap()
