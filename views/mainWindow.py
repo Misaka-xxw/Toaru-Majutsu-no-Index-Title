@@ -1,7 +1,7 @@
 import sys
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QImage
+from PyQt6.QtGui import QPixmap, QImage, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QLabel, QLineEdit, QRadioButton, QVBoxLayout,
     QPushButton, QFileDialog, QButtonGroup, QFrame,
@@ -20,6 +20,7 @@ class MainWindow(QWidget):
         self.img: Image = None
         self.setWindowTitle("某学都的标题工房")
         self.setGeometry(100, 100, 900, 700)
+        self.setWindowIcon(QIcon(resource_path('icons/avatar.png')))
 
         main_layout = QVBoxLayout()
         form_layout = QHBoxLayout()
@@ -243,6 +244,7 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(resource_path('icons/avatar.png')))
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
