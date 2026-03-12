@@ -54,6 +54,16 @@
 ```
 ```
 
+pyinstaller打包成软件（示例）：
+```
+pyinstaller  --debug all main.py --name TitleGenerator --onefile --windowed --strip --clean --noconfirm --icon icons/favicon.ico --add-data "fonts;fonts" --add-data "icons;icons" --hidden-import=PIL --hidden-import=numpy --exclude-module matplotlib --exclude-module tkinter --exclude-module IPython --exclude-module PyQt6.QtQml --exclude-module PyQt6.QtQuick --exclude-module PyQt6.QtNetwork --exclude-module PyQt6.QtWebEngine --exclude-module PyQt6.QtWebEngineCore --exclude-module PyQt6.QtWebEngineWidgets --exclude-module PyQt6.QtMultimedia --exclude-module PyQt6.QtBluetooth --exclude-module PyQt6.QtPositioning --exclude-module PyQt6.QtSensors --exclude-module PyQt6.QtSql --exclude-module PyQt6.QtTest --exclude-module PyQt6.QtPdf --exclude-module PyQt6.QtPdfWidgets --upx-dir  "D:\software\upx-5.1.1-win64\upx.exe"
+```
+
+upx进一步压缩（示例）
+```bash
+D:\software\upx-5.1.1-win64\upx.exe --best D:\Github\Toaru-Majutsu-no-Index-Title\dist\TitleGenerator.exe --force
+```
+
 ---
 
 ## 🔗 资源与参考

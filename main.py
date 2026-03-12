@@ -8,7 +8,7 @@ from views.mainWindow import MainWindow
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(resource_path('icons/avatar.png')))
+    app.setWindowIcon(QIcon(resource_path('icons/favicon.ico')))
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

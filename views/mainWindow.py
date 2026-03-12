@@ -20,7 +20,7 @@ class MainWindow(QWidget):
         self.img: Image = None
         self.setWindowTitle("某学都的标题工房")
         self.setGeometry(100, 100, 900, 700)
-        self.setWindowIcon(QIcon(resource_path('icons/avatar.png')))
+        self.setWindowIcon(QIcon(resource_path('icons/favicon.ico')))
 
         main_layout = QVBoxLayout()
         form_layout = QHBoxLayout()
@@ -244,7 +244,7 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(resource_path('icons/avatar.png')))
+    app.setWindowIcon(QIcon(resource_path('icons/favicon.ico')))
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
